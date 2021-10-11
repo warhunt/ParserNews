@@ -16,9 +16,14 @@ class Config:
     URL_WEBSITE=environ.get('URL_WEBSITE')
 
     # Provide the mongodb atlas url to connect python to mongodb using pymongo
-    DB = getenv('DB')
-    HOST = getenv('HOST')
-
+    CONNECTION_TO_DB = {
+        'DB': getenv('DB'),
+        'HOST': getenv('HOST'),
+        'USER': getenv('USER'),
+        'PASSWORD': getenv('PASSWORD'),
+        'AUTHENTICATION_SOURCE': getenv('AUTHENTICATION_SOURCE')
+    }
+    
     #variables for logging the application
     LOGGER_NAME = environ.get("LOGGER_NAME", "logger")
     LOGGING = {

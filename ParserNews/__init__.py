@@ -1,4 +1,4 @@
-from os import link
+from os import system
 from typing import List
 from urllib.error import URLError
 from urllib.request import urlopen
@@ -7,21 +7,23 @@ from lxml.html import fromstring
 import logging.config
 from lxml import etree
 import re
+from pymongo.errors import OperationFailure
+import sys
 
 from ParserNews.config import ConfigFactory
 from ParserNews.News import News
 from ParserNews.database import init_db
 
+
 class ParserNews:
     def __init__(self) -> None:
         """Constructor ParserNews"""
-        self.__config = ConfigFactory.factory()
+        config = ConfigFactory.factory()
+        logging.config.dictConfig(config.LOGGING)
+        self.__logger = logging.getLogger(config.LOGGER_NAME)
+        self.__url_website = config.URL_WEBSITE
 
-        init_db(self.__config.DB, self.__config.HOST)
-        
-        logging.config.dictConfig(self.__config.LOGGING)
-        self.__logger = logging.getLogger(self.__config.LOGGER_NAME)
-        self.__url_website = self.__config.URL_WEBSITE
+        init_db(**config.CONNECTION_TO_DB)
 
     def get_html(self):
         """Get html from website"""
@@ -36,7 +38,13 @@ class ParserNews:
         if html is None:
             return []
 
-        last_news = News.objects(news_from='ВА РБ').order_by('-date').first()
+        try:
+            last_news = News.objects(news_from='ВА РБ').order_by('-date').first()
+        except Exception as exs:
+            self.__logger.critical(str(exs))
+            self.__logger.info(f'---FINISH to parse news---')
+            print(str(exs))
+            sys.exit(1)    
 
         new_news_list=[]
         for index, elem in enumerate(html.cssselect('.seredina1_1 .seredina1_1')):
